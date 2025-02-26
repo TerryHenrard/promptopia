@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PromptCard from "./PromptCard";
 
 const PromptCardList = ({ data, handleTagClick }) => {
@@ -19,11 +19,36 @@ const PromptCardList = ({ data, handleTagClick }) => {
 
 const Feed = () => {
   const [searchText, setSearchText] = useState("");
+  const [debouncedSearchText, setDebouncedSearchText] = useState("");
   const [posts, setPosts] = useState([]);
 
-  const handleSearchChange = (e) => {
-    setSearchText(e.target.value);
+  const filteredPosts = useMemo(() => {
+    if (!debouncedSearchText) return posts;
+
+    const searchTextLower = debouncedSearchText.trim().toLowerCase();
+    return posts.filter((post) => {
+      const hasMatchingTag =
+        post?.tag?.toLowerCase().includes(searchTextLower) ?? false;
+      const hasMatchingPrompt =
+        post?.prompt?.toLowerCase().includes(searchTextLower) ?? false;
+      const hasMatchingCreator =
+        post?.creator?.email.toLowerCase().includes(searchTextLower) ?? false;
+
+      return hasMatchingTag || hasMatchingPrompt || hasMatchingCreator;
+    });
+  }, [posts, debouncedSearchText]);
+
+  const handleTagClick = (tag) => {
+    setSearchText(tag);
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -43,13 +68,13 @@ const Feed = () => {
           type="text"
           placeholder="Search for a tag or a username"
           value={searchText}
-          onChange={handleSearchChange}
+          onChange={({ target }) => setSearchText(target.value)}
           required
           className="search_input peer"
         />
       </form>
 
-      <PromptCardList data={posts} handleTagClick={() => {}} />
+      <PromptCardList data={filteredPosts} handleTagClick={handleTagClick} />
     </section>
   );
 };
