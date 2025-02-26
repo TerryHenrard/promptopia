@@ -1,6 +1,5 @@
 "use client";
 
-import { Suspense } from "react";
 import Form from "@components/Form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -65,12 +64,4 @@ const UpdatePromptForm = () => {
   );
 };
 
-const UpdatePromptPage = () => {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <UpdatePromptForm />
-    </Suspense>
-  );
-};
-
-export default UpdatePromptPage;
+export default UpdatePromptForm;
